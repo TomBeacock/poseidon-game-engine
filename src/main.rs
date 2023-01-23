@@ -1,6 +1,8 @@
 extern crate sdl2;
 extern crate gl;
 
+mod math;
+
 use std::mem::{size_of_val, size_of};
 
 use sdl2::event::Event;
