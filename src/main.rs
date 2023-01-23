@@ -12,36 +12,43 @@ fn main() {
     let video_subsystem = sdl_context.video().unwrap();
 
     let gl_attr = video_subsystem.gl_attr();
-    gl_attr.set_context_major_version(3);
-    gl_attr.set_context_minor_version(3);
+    gl_attr.set_context_version(3, 3);
     gl_attr.set_context_profile(GLProfile::Core);
      
     let window = video_subsystem.window("Poseidon Engine", 1280, 720)
         .opengl()
-        .position_centered()
         .build()
         .unwrap();
-    video_subsystem.gl_set_swap_interval(SwapInterval::VSync);
-            
-    window.gl_create_context().unwrap();
+        
+    let gl_context = window.gl_create_context().unwrap();
+    window.gl_make_current(&gl_context).unwrap();
+    video_subsystem.gl_set_swap_interval(SwapInterval::VSync).unwrap();
+
     gl::load_with(|fn_name| video_subsystem.gl_get_proc_address(fn_name) as *const _);
 
     unsafe {
         gl::ClearColor(0.0, 0.0, 0.0, 1.0);
 
-        let mut vao = 0;
-        gl::GenVertexArrays(1, &mut vao);
-        assert_ne!(vao, 0);
-        gl::BindVertexArray(vao);
+        // Vertex Array
+        let mut vertex_array = 0;
+        gl::GenVertexArrays(1, &mut vertex_array);
+        assert_ne!(vertex_array, 0);
+        gl::BindVertexArray(vertex_array);
 
-        let mut vbo = 0;
-        gl::GenBuffers(1, &mut vbo);
-        assert_ne!(vbo, 0);
-        gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
+        // Position Buffer
+        let mut position_buffer = 0;
+        gl::GenBuffers(1, &mut position_buffer);
+        assert_ne!(position_buffer, 0);
+        gl::BindBuffer(gl::ARRAY_BUFFER, position_buffer);
 
         type Vertex = [f32; 3];
-        const VERTICES: [Vertex; 3] =
-            [[-0.5, -0.5, 0.0], [0.5, -0.5, 0.0], [0.0, 0.5, 0.0]];
+        const VERTICES: [Vertex; 4*6] = [
+            [-0.5, -0.5, -0.5], [0.5, -0.5, -0.5] , [0.5, 0.5, -0.5]  , [-0.5, 0.5, -0.5],
+            [0.5, -0.5, -0.5] , [0.5, -0.5, 0.5]  , [0.5, 0.5, 0.5]   , [0.5, 0.5, -0.5] ,
+            [0.5, -0.5, 0.5]  , [-0.5, -0.5, 0.5] , [-0.5, 0.5, 0.5]  , [0.5, 0.5, 0.5]  ,
+            [-0.5, -0.5, 0.5] , [-0.5, -0.5, -0.5], [-0.5, 0.5, -0.5] , [-0.5, 0.5, 0.5] ,
+            [-0.5, 0.5, -0.5] , [0.5, 0.5, -0.5]  , [0.5, 0.5, 0.5]   , [-0.5, 0.5, 0.5] ,
+            [0.5, -0.5, 0.5]  , [-0.5, -0.5, 0.5] , [-0.5, -0.5, -0.5], [0.5, -0.5, -0.5]];
 
         gl::BufferData(
             gl::ARRAY_BUFFER,
@@ -50,6 +57,29 @@ fn main() {
             gl::STATIC_DRAW
         );
 
+        // Index Buffer
+        let mut index_buffer = 0;
+        gl::GenBuffers(1, &mut index_buffer);
+        assert_ne!(index_buffer, 0);
+        gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, index_buffer);
+
+        const INDICES: [u32; 6*6] = [
+            0, 1, 2, 0, 2, 3,
+            4, 5, 6, 4, 6, 7,
+            8, 9, 10, 8, 10, 11,
+            12, 13, 14, 12, 14, 15,
+            16, 17, 18, 16, 18, 19,
+            20, 21, 22, 20, 22, 23];
+        
+        gl::BufferData(
+            gl::ELEMENT_ARRAY_BUFFER,
+            size_of_val(&INDICES) as isize,
+            INDICES.as_ptr().cast(),
+            gl::STATIC_DRAW
+        );
+        
+        // Enable vertex attributes
+        gl::EnableVertexAttribArray(0);
         gl::VertexAttribPointer(
             0,
             3,
@@ -58,8 +88,6 @@ fn main() {
             size_of::<Vertex>().try_into().unwrap(),
             0 as *const _
         );
-
-        gl::EnableVertexAttribArray(0);
 
         // Vertex shader
         let vertex_shader = gl::CreateShader(gl::VERTEX_SHADER);
@@ -174,7 +202,12 @@ fn main() {
         }
 
         unsafe {
-            gl::DrawArrays(gl::TRIANGLES, 0, 3);
+            gl::DrawElements(
+                gl::TRIANGLES, 
+                6*6, 
+                gl::UNSIGNED_INT, 
+                0 as *const _
+            );
         }
 
         window.gl_swap_window();
