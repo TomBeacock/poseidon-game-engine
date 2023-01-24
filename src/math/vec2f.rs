@@ -1,5 +1,5 @@
 use core::fmt;
-use std::ops;
+use auto_ops::{impl_op_ex, impl_op_ex_commutative};
 
 /// A 2D Vector with f32 components
 #[derive(Clone, Copy, PartialEq)]
@@ -101,77 +101,60 @@ impl Vec2f {
     }
 }
 
-impl ops::Add<Vec2f> for Vec2f {
-    type Output = Vec2f;
-
-    fn add(self, rhs: Vec2f) -> Vec2f {
-        Vec2f {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y
-        }
+impl_op_ex!(- | a: &Vec2f | -> Vec2f {
+    Vec2f { 
+        x: -a.x,
+        y: -a.y
     }
-}
+});
 
-impl ops::AddAssign<Vec2f> for Vec2f {
-    fn add_assign(& mut self, rhs: Vec2f) {
-        self.x += rhs.x;
-        self.y += rhs.y;
+impl_op_ex!(+ | a: &Vec2f, b: &Vec2f | -> Vec2f {
+    Vec2f {
+        x: a.x + b.x,
+        y: a.y + b.y
     }
-}
+});
 
-impl ops::Sub<Vec2f> for Vec2f {
-    type Output = Vec2f;
-
-    fn sub(self, rhs: Vec2f) -> Vec2f {
-        Vec2f { 
-            x: self.x - rhs.x,
-            y: self.y - rhs.y
-        }
+impl_op_ex!(- | a: &Vec2f, b: &Vec2f | -> Vec2f {
+    Vec2f {
+        x: a.x - b.x,
+        y: a.y - b.y
     }
-}
+});
 
-impl ops::SubAssign<Vec2f> for Vec2f {
-    fn sub_assign(& mut self, rhs: Vec2f) {
-        self.x -= rhs.x;
-        self.y -= rhs.y;
+impl_op_ex_commutative!(* | a: &Vec2f, b: &f32 | -> Vec2f {
+    Vec2f {
+        x: a.x * b,
+        y: a.y * b
     }
-}
+});
 
-impl ops::Mul<f32> for Vec2f {
-    type Output = Vec2f;
-
-    fn mul(self, rhs: f32) -> Vec2f {
-        Vec2f {
-            x: self.x * rhs,
-            y: self.y * rhs
-        }
+impl_op_ex!(/ | a: &Vec2f, b: &f32 | -> Vec2f {
+    Vec2f {
+        x: a.x / b,
+        y: a.y / b
     }
-}
+});
 
-impl ops::MulAssign<f32> for Vec2f {
-    fn mul_assign(& mut self, rhs: f32) {
-        self.x *= rhs;
-        self.y *= rhs;
-    }
-}
+impl_op_ex!(+= | a: &mut Vec2f, b: &Vec2f| {
+    a.x += b.x;
+    a.y += b.y;
+});
 
-impl ops::Div<f32> for Vec2f {
-    type Output = Vec2f;
+impl_op_ex!(-= | a: &mut Vec2f, b: &Vec2f| {
+    a.x -= b.x;
+    a.y -= b.y;
+});
 
-    fn div(self, rhs: f32) -> Vec2f {
-        Vec2f {
-            x: self.x / rhs,
-            y: self.y / rhs
-        }
-    }
-}
+impl_op_ex!(*= | a: &mut Vec2f, b: &f32| {
+    a.x *= b;
+    a.y *= b;
+});
 
-impl ops::DivAssign<f32> for Vec2f {
-    fn div_assign(& mut self, rhs: f32) {
-        self.x /= rhs;
-        self.y /= rhs;
-    }
-}
+impl_op_ex!(/= | a: &mut Vec2f, b: &f32| {
+    a.x /= b;
+    a.y /= b;
+});
 
 impl fmt::Display for Vec2f {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

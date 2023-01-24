@@ -1,6 +1,8 @@
 use core::fmt;
 use std::ops;
 
+use auto_ops::{impl_op_ex, impl_op_ex_commutative};
+
 #[derive(Clone, Copy, PartialEq)]
 pub struct Vec4f {
     pub x: f32,
@@ -78,44 +80,78 @@ impl Vec4f {
     }
 }
 
-impl ops::Add<Vec4f> for Vec4f {
-    type Output = Vec4f;
-
-    fn add(self, rhs: Vec4f) -> Vec4f {
-        Vec4f {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
-            w: self.w + rhs.w
-        }
+impl_op_ex!(- | a: &Vec4f | -> Vec4f {
+    Vec4f { 
+        x: -a.x,
+        y: -a.y,
+        z: -a.z,
+        w: -a.w,
     }
-}
+});
 
-impl ops::Sub<Vec4f> for Vec4f {
-    type Output = Vec4f;
-
-    fn sub(self, rhs: Vec4f) -> Vec4f {
-        Vec4f {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-            z: self.z - rhs.z,
-            w: self.w - rhs.w
-        }
+impl_op_ex!(+ | a: &Vec4f, b: &Vec4f | -> Vec4f {
+    Vec4f {
+        x: a.x + b.x,
+        y: a.y + b.y,
+        z: a.z + b.z,
+        w: a.w + b.w
     }
-}
+});
 
-impl ops::Mul<f32> for Vec4f {
-    type Output = Vec4f;
-
-    fn mul(self, rhs: f32) -> Vec4f {
-        Vec4f {
-            x: self.x * rhs,
-            y: self.y * rhs,
-            z: self.z * rhs,
-            w: self.w + rhs
-        }
+impl_op_ex!(- | a: &Vec4f, b: &Vec4f | -> Vec4f {
+    Vec4f {
+        x: a.x - b.x,
+        y: a.y - b.y,
+        z: a.z - b.z,
+        w: a.w - b.w
     }
-}
+});
+
+impl_op_ex_commutative!(* | a: &Vec4f, b: &f32 | -> Vec4f {
+    Vec4f {
+        x: a.x * b,
+        y: a.y * b,
+        z: a.z * b,
+        w: a.w * b
+    }
+});
+
+impl_op_ex!(/ | a: &Vec4f, b: &f32 | -> Vec4f {
+    Vec4f {
+        x: a.x / b,
+        y: a.y / b,
+        z: a.z / b,
+        w: a.w / b
+    }
+});
+
+impl_op_ex!(+= | a: &mut Vec4f, b: &Vec4f| {
+    a.x += b.x;
+    a.y += b.y;
+    a.z += b.z;
+    a.w += b.w;
+});
+
+impl_op_ex!(-= | a: &mut Vec4f, b: &Vec4f| {
+    a.x -= b.x;
+    a.y -= b.y;
+    a.z -= b.z;
+    a.w -= b.w;
+});
+
+impl_op_ex!(*= | a: &mut Vec4f, b: &f32| {
+    a.x *= b;
+    a.y *= b;
+    a.z *= b;
+    a.w *= b;
+});
+
+impl_op_ex!(/= | a: &mut Vec4f, b: &f32| {
+    a.x /= b;
+    a.y /= b;
+    a.z /= b;
+    a.w /= b;
+});
 
 impl fmt::Display for Vec4f {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

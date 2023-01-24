@@ -1,6 +1,8 @@
 use core::fmt;
 use std::ops;
 
+use auto_ops::{impl_op_ex, impl_op_ex_commutative};
+
 /// A 3D Vector with f32 components
 #[derive(Clone, Copy, PartialEq)]
 pub struct Vec3f {
@@ -114,85 +116,69 @@ impl Vec3f {
     }
 }
 
-impl ops::Add<Vec3f> for Vec3f {
-    type Output = Vec3f;
-
-    fn add(self, rhs: Vec3f) -> Vec3f {
-        Vec3f {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z
-        }
+impl_op_ex!(- | a: &Vec3f | -> Vec3f {
+    Vec3f { 
+        x: -a.x,
+        y: -a.y,
+        z: -a.z
     }
-}
+});
 
-impl ops::AddAssign<Vec3f> for Vec3f {
-    fn add_assign(& mut self, rhs: Vec3f) {
-        self.x += rhs.x;
-        self.y += rhs.y;
-        self.z += rhs.z;
+impl_op_ex!(+ | a: &Vec3f, b: &Vec3f | -> Vec3f {
+    Vec3f {
+        x: a.x + b.x,
+        y: a.y + b.y,
+        z: a.z + b.z
     }
-}
+});
 
-impl ops::Sub<Vec3f> for Vec3f {
-    type Output = Vec3f;
-
-    fn sub(self, rhs: Vec3f) -> Vec3f {
-        Vec3f {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-            z: self.z - rhs.z
-        }
+impl_op_ex!(- | a: &Vec3f, b: &Vec3f | -> Vec3f {
+    Vec3f {
+        x: a.x - b.x,
+        y: a.y - b.y,
+        z: a.z - b.z
     }
-}
+});
 
-impl ops::SubAssign<Vec3f> for Vec3f {
-    fn sub_assign(& mut self, rhs: Vec3f) {
-        self.x -= rhs.x;
-        self.y -= rhs.y;
-        self.z -= rhs.z;
+impl_op_ex_commutative!(* | a: &Vec3f, b: &f32 | -> Vec3f {
+    Vec3f {
+        x: a.x * b,
+        y: a.y * b,
+        z: a.z * b
     }
-}
+});
 
-impl ops::Mul<f32> for Vec3f {
-    type Output = Vec3f;
-
-    fn mul(self, rhs: f32) -> Vec3f {
-        Vec3f {
-            x: self.x * rhs,
-            y: self.y * rhs,
-            z: self.z * rhs
-        }
+impl_op_ex!(/ | a: &Vec3f, b: &f32 | -> Vec3f {
+    Vec3f {
+        x: a.x / b,
+        y: a.y / b,
+        z: a.z / b
     }
-}
+});
 
-impl ops::MulAssign<f32> for Vec3f {
-    fn mul_assign(& mut self, rhs: f32) {
-        self.x *= rhs;
-        self.y *= rhs;
-        self.z *= rhs;
-    }
-}
+impl_op_ex!(+= | a: &mut Vec3f, b: &Vec3f| {
+    a.x += b.x;
+    a.y += b.y;
+    a.z += b.z;
+});
 
-impl ops::Div<f32> for Vec3f {
-    type Output = Vec3f;
+impl_op_ex!(-= | a: &mut Vec3f, b: &Vec3f| {
+    a.x -= b.x;
+    a.y -= b.y;
+    a.z -= b.z;
+});
 
-    fn div(self, rhs: f32) -> Vec3f {
-        Vec3f {
-            x: self.x / rhs,
-            y: self.y / rhs,
-            z: self.z / rhs
-        }
-    }
-}
+impl_op_ex!(*= | a: &mut Vec3f, b: &f32| {
+    a.x *= b;
+    a.y *= b;
+    a.z *= b;
+});
 
-impl ops::DivAssign<f32> for Vec3f {
-    fn div_assign(& mut self, rhs: f32) {
-        self.x /= rhs;
-        self.y /= rhs;
-        self.z /= rhs;
-    }
-}
+impl_op_ex!(/= | a: &mut Vec3f, b: &f32| {
+    a.x /= b;
+    a.y /= b;
+    a.z /= b;
+});
 
 impl fmt::Display for Vec3f {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
