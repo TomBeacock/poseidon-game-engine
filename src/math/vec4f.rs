@@ -1,24 +1,26 @@
 use core::fmt;
 use std::ops;
 
-#[derive(Copy, Clone)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Vec4f {
-    x: f32,
-    y: f32,
-    z: f32,
-    w: f32
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+    pub w: f32
 }
 
 impl Vec4f {
-    // Static Methods
-    pub fn zero() -> Self {
+    /// Creates vector: (0, 0, 0, 0)
+    pub const fn zero() -> Self {
         Vec4f { x: 0.0, y: 0.0, z: 0.0, w: 0.0 }
     }
 
-    pub fn one() -> Self {
+    /// Creates vector: (1, 1, 1, 1)
+    pub const fn one() -> Self {
         Vec4f { x: 1.0, y: 1.0, z: 1.0, w: 1.0 }
     }
  
+    /// Calculates the distance between two points in 4D space
     pub fn distance(lhs: Vec4f, rhs: Vec4f) -> f32 {
         Vec4f {
             x: lhs.x - rhs.x,
@@ -28,19 +30,28 @@ impl Vec4f {
         }.magnitude()
     }
 
+    /// Calculate the dot product of two vectors
     pub fn dot(lhs: Vec4f, rhs: Vec4f) -> f32 {
         lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z + lhs.w * rhs.w
     }
 
-    // Methods
+    /// Get the squared length of the vector
+    /// 
+    /// Recommended when comparing lengths as it
+    /// avoids unnecessary square root operations
     pub fn sqr_magnitude(self) -> f32 {
         self.x * self.x + self.y * self.y + self.z * self.z + self.w * self.w
     }
 
+    /// Get the length of the vector
+    /// 
+    /// If comparing lengths use sqr_magnitude
+    /// instead for improved performance
     pub fn magnitude(self) -> f32 {
         self.sqr_magnitude().sqrt()
     }
 
+    /// Normalize this vector (Scale of length 1)
     pub fn normalize(&mut self) {
         let mag = self.magnitude();
         if mag == 0.0 { return; }
@@ -52,12 +63,18 @@ impl Vec4f {
         self.w *= scale;
     }
 
+    /// Get this vector normalized (Scale of length 1)
     pub fn normalized(self) -> Vec4f {
         let mag = self.magnitude();
         if mag == 0.0 { return Vec4f::zero(); }
 
         let scale = 1.0 / mag;
-        Vec4f { x: self.x * scale, y: self.y * scale, z: self.z * scale, w: self.w * scale }
+        Vec4f {
+            x: self.x * scale,
+            y: self.y * scale,
+            z: self.z * scale,
+            w: self.w * scale
+        }
     }
 }
 
@@ -65,7 +82,12 @@ impl ops::Add<Vec4f> for Vec4f {
     type Output = Vec4f;
 
     fn add(self, rhs: Vec4f) -> Vec4f {
-        Vec4f { x: self.x + rhs.x, y: self.y + rhs.y, z: self.z + rhs.z, w: self.w + rhs.w }
+        Vec4f {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+            z: self.z + rhs.z,
+            w: self.w + rhs.w
+        }
     }
 }
 
@@ -73,7 +95,12 @@ impl ops::Sub<Vec4f> for Vec4f {
     type Output = Vec4f;
 
     fn sub(self, rhs: Vec4f) -> Vec4f {
-        Vec4f { x: self.x - rhs.x, y: self.y - rhs.y, z: self.z - rhs.z, w: self.w - rhs.w }
+        Vec4f {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+            z: self.z - rhs.z,
+            w: self.w - rhs.w
+        }
     }
 }
 
@@ -81,7 +108,12 @@ impl ops::Mul<f32> for Vec4f {
     type Output = Vec4f;
 
     fn mul(self, rhs: f32) -> Vec4f {
-        Vec4f { x: self.x * rhs, y: self.y * rhs, z: self.z * rhs, w: self.w + rhs }
+        Vec4f {
+            x: self.x * rhs,
+            y: self.y * rhs,
+            z: self.z * rhs,
+            w: self.w + rhs
+        }
     }
 }
 

@@ -1,55 +1,70 @@
 use core::fmt;
 use std::ops;
 
-#[derive(Copy, Clone)]
+/// A 3D Vector with f32 components
+#[derive(Clone, Copy, PartialEq)]
 pub struct Vec3f {
-    x: f32,
-    y: f32,
-    z: f32
+    pub x: f32,
+    pub y: f32,
+    pub z: f32
 }
 
 impl Vec3f {
-    // Static Methods
-    pub fn zero() -> Self {
+    /// Creates vector: (0, 0, 0) 
+    pub const fn zero() -> Self {
         Vec3f { x: 0.0, y: 0.0, z: 0.0 }
     }
 
-    pub fn one() -> Self {
+    /// Creates vector: (1, 1, 1)
+    pub const fn one() -> Self {
         Vec3f { x: 1.0, y: 1.0, z: 1.0 }
     }
 
-    pub fn right() -> Self {
+    /// Creates vector: (1, 0, 0)
+    pub const fn right() -> Self {
         Vec3f { x: 1.0, y: 0.0, z: 0.0 }
     }
 
-    pub fn left() -> Self {
+    /// Creates vector: (-1, 0, 0)
+    pub const fn left() -> Self {
         Vec3f { x: -1.0, y: 0.0, z: 0.0 }
     }
 
-    pub fn up() -> Self {
+    /// Creates vector: (0, 1, 0)
+    pub const fn up() -> Self {
         Vec3f { x: 0.0, y: 1.0, z: 0.0 }
     }
 
-    pub fn down() -> Self {
+    /// Creates vector: (0, -1, 0)
+    pub const fn down() -> Self {
         Vec3f { x: 0.0, y: -1.0, z: 0.0 }
     }
 
-    pub fn forward() -> Self {
+    /// Creates vector: (0, 0, 1)
+    pub const fn forward() -> Self {
         Vec3f { x: 0.0, y: 0.0, z: 1.0 }
     }
 
-    pub fn back() -> Self {
+    /// Creates vector: (0, 0, -1)
+    pub const fn back() -> Self {
         Vec3f { x: 0.0, y: 0.0, z: -1.0 }
     }
  
+    /// Calculates the distance between two points in 3D space
     pub fn distance(lhs: Vec3f, rhs: Vec3f) -> f32 {
-       Vec3f { x: lhs.x - rhs.x, y: lhs.y - rhs.y, z: lhs.z - rhs.z}.magnitude()
+        Vec3f {
+            x: lhs.x - rhs.x,
+            y: lhs.y - rhs.y,
+            z: lhs.z - rhs.z
+        }.magnitude()
     }
 
+    /// Calculate the dot product of two vectors
     pub fn dot(lhs: Vec3f, rhs: Vec3f) -> f32 {
         lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z
     }
 
+    /// Calculate the cross product of two vectors
     pub fn cross(lhs: Vec3f, rhs: Vec3f) -> Vec3f {
         Vec3f {
             x: lhs.y * rhs.z - lhs.z * rhs.y,
@@ -58,15 +73,23 @@ impl Vec3f {
         }
     }
 
-    // Methods
+    /// Get the squared length of the vector
+    /// 
+    /// Recommended when comparing lengths as it
+    /// avoids unnecessary square root operations
     pub fn sqr_magnitude(self) -> f32 {
         self.x * self.x + self.y * self.y + self.z * self.z
     }
 
+    /// Get the length of the vector
+    /// 
+    /// If comparing lengths use sqr_magnitude
+    /// instead for improved performance
     pub fn magnitude(self) -> f32 {
         self.sqr_magnitude().sqrt()
     }
 
+    /// Normalize this vector (Scale of length 1)
     pub fn normalize(&mut self) {
         let mag = self.magnitude();
         if mag == 0.0 { return; }
@@ -77,12 +100,17 @@ impl Vec3f {
         self.z *= scale;
     }
 
+    /// Get this vector normalized (Scale of length 1)
     pub fn normalized(self) -> Vec3f {
         let mag = self.magnitude();
         if mag == 0.0 { return Vec3f::zero(); }
 
         let scale = 1.0 / mag;
-        Vec3f { x: self.x * scale, y: self.y * scale, z: self.z * scale }
+        Vec3f {
+            x: self.x * scale,
+            y: self.y * scale,
+            z: self.z * scale
+        }
     }
 }
 
@@ -90,7 +118,19 @@ impl ops::Add<Vec3f> for Vec3f {
     type Output = Vec3f;
 
     fn add(self, rhs: Vec3f) -> Vec3f {
-        Vec3f { x: self.x + rhs.x, y: self.y + rhs.y, z: self.z + rhs.z }
+        Vec3f {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+            z: self.z + rhs.z
+        }
+    }
+}
+
+impl ops::AddAssign<Vec3f> for Vec3f {
+    fn add_assign(& mut self, rhs: Vec3f) {
+        self.x += rhs.x;
+        self.y += rhs.y;
+        self.z += rhs.z;
     }
 }
 
@@ -98,7 +138,19 @@ impl ops::Sub<Vec3f> for Vec3f {
     type Output = Vec3f;
 
     fn sub(self, rhs: Vec3f) -> Vec3f {
-        Vec3f { x: self.x - rhs.x, y: self.y - rhs.y, z: self.z - rhs.z }
+        Vec3f {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+            z: self.z - rhs.z
+        }
+    }
+}
+
+impl ops::SubAssign<Vec3f> for Vec3f {
+    fn sub_assign(& mut self, rhs: Vec3f) {
+        self.x -= rhs.x;
+        self.y -= rhs.y;
+        self.z -= rhs.z;
     }
 }
 
@@ -106,7 +158,39 @@ impl ops::Mul<f32> for Vec3f {
     type Output = Vec3f;
 
     fn mul(self, rhs: f32) -> Vec3f {
-        Vec3f { x: self.x * rhs, y: self.y * rhs, z: self.z * rhs }
+        Vec3f {
+            x: self.x * rhs,
+            y: self.y * rhs,
+            z: self.z * rhs
+        }
+    }
+}
+
+impl ops::MulAssign<f32> for Vec3f {
+    fn mul_assign(& mut self, rhs: f32) {
+        self.x *= rhs;
+        self.y *= rhs;
+        self.z *= rhs;
+    }
+}
+
+impl ops::Div<f32> for Vec3f {
+    type Output = Vec3f;
+
+    fn div(self, rhs: f32) -> Vec3f {
+        Vec3f {
+            x: self.x / rhs,
+            y: self.y / rhs,
+            z: self.z / rhs
+        }
+    }
+}
+
+impl ops::DivAssign<f32> for Vec3f {
+    fn div_assign(& mut self, rhs: f32) {
+        self.x /= rhs;
+        self.y /= rhs;
+        self.z /= rhs;
     }
 }
 
