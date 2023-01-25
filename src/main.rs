@@ -3,11 +3,17 @@ extern crate gl;
 
 mod math;
 
+use std::f32::consts::{PI, FRAC_PI_2, FRAC_PI_4};
 use std::mem::{size_of_val, size_of};
 
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::video::{GLProfile, SwapInterval};
+
+use crate::math::vec3f::Vec3f;
+use crate::math::mat4f::Mat4f;
+use crate::math::vec4f::Vec4f;
+
 
 fn main() {
     let sdl_context = sdl2::init().unwrap();
@@ -30,7 +36,10 @@ fn main() {
 
     unsafe {
         gl::ClearColor(0.0, 0.0, 0.0, 1.0);
+    }
 
+    // Create quad
+    unsafe {
         // Vertex Array
         let mut vertex_array = 0;
         gl::GenVertexArrays(1, &mut vertex_array);
@@ -90,15 +99,23 @@ fn main() {
             size_of::<Vertex>().try_into().unwrap(),
             0 as *const _
         );
+    }
 
+    // Create shader
+    let mut shader_program: u32 = 0;
+    unsafe {
         // Vertex shader
         let vertex_shader = gl::CreateShader(gl::VERTEX_SHADER);
         assert_ne!(vertex_shader, 0);
 
         const VERT_SHADER: &str = r#"#version 330 core
         layout (location = 0) in vec3 pos;
+
+        uniform mat4 model;
+        uniform mat4 view_projection;
+
         void main() {
-            gl_Position = vec4(pos, 1.0);
+            gl_Position = view_projection * model * vec4(pos, 1.0);
         }
         "#;
 
@@ -131,6 +148,7 @@ fn main() {
 
         const FRAG_SHADER: &str = r#"#version 330 core
         out vec4 color;
+
         void main() {
             color = vec4(1.0, 0.0, 0.0, 1.0);
         }
@@ -160,7 +178,7 @@ fn main() {
         }
 
         // Program
-        let shader_program = gl::CreateProgram();
+        shader_program = gl::CreateProgram();
         gl::AttachShader(shader_program, vertex_shader);
         gl::AttachShader(shader_program, fragment_shader);
         gl::LinkProgram(shader_program);
@@ -184,9 +202,46 @@ fn main() {
         gl::DeleteShader(fragment_shader);
 
         gl::UseProgram(shader_program);
+
+        // Set uniforms
+        let model = Mat4f::transformation(
+            Vec3f::new(0.0, 0.0, 0.0), 
+            Vec3f::new(0.0, 0.0, 0.0),
+            Vec3f::new(1.0, 1.0, 1.0));
+        let view = Mat4f::translate(-Vec3f::new(0.0, 0.0, -3.0));
+        //let projection = Mat4f::ortho(16.0, 9.0, 0.1, 10.0);
+        let projection = Mat4f::persp_fov(f32::to_radians(90.0), 16.0 / 9.0, 0.1, 10.0);
+
+        let name_model = std::ffi::CString::new("model").unwrap();
+        let uniform_model = gl::GetUniformLocation(
+            shader_program, 
+            name_model.as_ptr()
+        );
+
+        gl::UniformMatrix4fv(
+            uniform_model, 
+            1, 
+            gl::FALSE, 
+            model.values.as_ptr()
+        );
+        
+        let name_view_projection = std::ffi::CString::new("view_projection").unwrap();
+        let uniform_view_projection = gl::GetUniformLocation(
+            shader_program, 
+            name_view_projection.as_ptr()
+        );
+
+        gl::UniformMatrix4fv(
+            uniform_view_projection, 
+            1, 
+            gl::FALSE, 
+            (projection * view).values.as_ptr()
+        );
     }
 
     let mut event_pump = sdl_context.event_pump().unwrap();
+
+    let mut angle: f32 = 0.0;
 
     'running: loop {
         unsafe {
@@ -201,6 +256,31 @@ fn main() {
                 },
                 _ => {}
             }
+        }
+
+        // Rotate quad
+        angle += 1.0;
+        unsafe {
+            // Set uniforms
+            let model = Mat4f::transformation(
+                Vec3f::new(0.0, 0.0, 0.0), 
+                Vec3f::new(0.0, angle.to_radians(), 0.0),
+                Vec3f::new(1.0, 1.0, 1.0));
+
+            //println!("{}: {}", angle, model * Vec4f::new(1.0, 0.0, 0.0, 1.0));
+
+            let name_model = std::ffi::CString::new("model").unwrap();
+            let uniform_model = gl::GetUniformLocation(
+                shader_program, 
+                name_model.as_ptr()
+            );
+
+            gl::UniformMatrix4fv(
+                uniform_model, 
+                1, 
+                gl::FALSE, 
+                model.values.as_ptr()
+            );
         }
 
         unsafe {
