@@ -1,5 +1,4 @@
 use core::fmt;
-use std::ops;
 
 use auto_ops::{impl_op_ex, impl_op_ex_commutative};
 
@@ -12,6 +11,10 @@ pub struct Vec3f {
 }
 
 impl Vec3f {
+    pub const fn new(x: f32, y: f32, z: f32) -> Self {
+        Self { x, y, z }
+    }
+
     /// Creates vector: (0, 0, 0) 
     pub const fn zero() -> Self {
         Vec3f { x: 0.0, y: 0.0, z: 0.0 }
