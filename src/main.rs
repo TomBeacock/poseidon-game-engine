@@ -11,12 +11,15 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::video::{GLProfile, SwapInterval};
 
-use crate::graphics::shader::Shader;
 use crate::math::vec3f::Vec3f;
+use crate::math::vec4f::Vec4f;
 use crate::math::mat4f::Mat4f;
+
 use crate::graphics::vertex_array::VertexArray;
 use crate::graphics::array_buffer::{ArrayBuffer, BufferLayout, BufferAttribute, AttributeType};
 use crate::graphics::index_buffer::IndexBuffer;
+use crate::graphics::shader::Shader;
+use crate::graphics::renderer::Renderer;
 
 fn main() {
     let sdl_context = sdl2::init().unwrap();
@@ -37,9 +40,8 @@ fn main() {
 
     gl::load_with(|fn_name| video_subsystem.gl_get_proc_address(fn_name) as *const _);
 
-    unsafe {
-        gl::ClearColor(0.0, 0.0, 0.0, 1.0);
-    }
+    Renderer::init();
+    Renderer::set_clear_color(Vec4f::new(0.0, 0.0, 0.0, 0.0));
 
     // Vertex Buffer
     type Vertex = [f32; 3];
@@ -118,14 +120,11 @@ fn main() {
     let mut angle: f32 = 0.0;
 
     'running: loop {
-        unsafe {
-            gl::Clear(gl::COLOR_BUFFER_BIT);
-        }
+        Renderer::clear();
 
         for event in event_pump.poll_iter() {
             match event {
-                Event::Quit {..} |
-                Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
+                Event::Quit {..} => {
                     break 'running
                 },
                 _ => {}
@@ -142,14 +141,7 @@ fn main() {
 
         shader.set_mat4f(&CString::new("model").unwrap(), model);
 
-        unsafe {
-            gl::DrawElements(
-                gl::TRIANGLES, 
-                6*6, 
-                gl::UNSIGNED_INT, 
-                0 as *const _
-            );
-        }
+        Renderer::draw_elements(&vertex_array, 6*6);
 
         window.gl_swap_window();
     }
