@@ -2,9 +2,9 @@ extern crate sdl2;
 extern crate gl;
 
 mod math;
+mod graphics;
 
-use std::f32::consts::{PI, FRAC_PI_2, FRAC_PI_4};
-use std::mem::{size_of_val, size_of};
+use std::mem::size_of_val;
 
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
@@ -12,8 +12,9 @@ use sdl2::video::{GLProfile, SwapInterval};
 
 use crate::math::vec3f::Vec3f;
 use crate::math::mat4f::Mat4f;
-use crate::math::vec4f::Vec4f;
-
+use crate::graphics::vertex_array::VertexArray;
+use crate::graphics::array_buffer::{ArrayBuffer, BufferLayout, BufferAttribute, AttributeType};
+use crate::graphics::index_buffer::IndexBuffer;
 
 fn main() {
     let sdl_context = sdl2::init().unwrap();
@@ -38,71 +39,42 @@ fn main() {
         gl::ClearColor(0.0, 0.0, 0.0, 1.0);
     }
 
-    // Create quad
-    unsafe {
-        // Vertex Array
-        let mut vertex_array = 0;
-        gl::GenVertexArrays(1, &mut vertex_array);
-        assert_ne!(vertex_array, 0);
-        gl::BindVertexArray(vertex_array);
-
-        // Position Buffer
-        let mut position_buffer = 0;
-        gl::GenBuffers(1, &mut position_buffer);
-        assert_ne!(position_buffer, 0);
-        gl::BindBuffer(gl::ARRAY_BUFFER, position_buffer);
-
-        type Vertex = [f32; 3];
-        const VERTICES: [Vertex; 4*6] = [
-            [-0.5, -0.5, -0.5], [0.5, -0.5, -0.5] , [0.5, 0.5, -0.5]  , [-0.5, 0.5, -0.5],
-            [0.5, -0.5, -0.5] , [0.5, -0.5, 0.5]  , [0.5, 0.5, 0.5]   , [0.5, 0.5, -0.5] ,
-            [0.5, -0.5, 0.5]  , [-0.5, -0.5, 0.5] , [-0.5, 0.5, 0.5]  , [0.5, 0.5, 0.5]  ,
-            [-0.5, -0.5, 0.5] , [-0.5, -0.5, -0.5], [-0.5, 0.5, -0.5] , [-0.5, 0.5, 0.5] ,
-            [-0.5, 0.5, -0.5] , [0.5, 0.5, -0.5]  , [0.5, 0.5, 0.5]   , [-0.5, 0.5, 0.5] ,
-            [0.5, -0.5, 0.5]  , [-0.5, -0.5, 0.5] , [-0.5, -0.5, -0.5], [0.5, -0.5, -0.5]];
-
-        gl::BufferData(
-            gl::ARRAY_BUFFER,
-            size_of_val(&VERTICES) as isize,
-            VERTICES.as_ptr().cast(),
-            gl::STATIC_DRAW
-        );
-
-        // Index Buffer
-        let mut index_buffer = 0;
-        gl::GenBuffers(1, &mut index_buffer);
-        assert_ne!(index_buffer, 0);
-        gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, index_buffer);
-
-        const INDICES: [u32; 6*6] = [
-            0, 1, 2, 0, 2, 3,
-            4, 5, 6, 4, 6, 7,
-            8, 9, 10, 8, 10, 11,
-            12, 13, 14, 12, 14, 15,
-            16, 17, 18, 16, 18, 19,
-            20, 21, 22, 20, 22, 23];
+    // Vertex Buffer
+    type Vertex = [f32; 3];
+    const VERTICES: [Vertex; 4*6] = [
+        [-0.5, -0.5, -0.5], [0.5, -0.5, -0.5] , [0.5, 0.5, -0.5]  , [-0.5, 0.5, -0.5],
+        [0.5, -0.5, -0.5] , [0.5, -0.5, 0.5]  , [0.5, 0.5, 0.5]   , [0.5, 0.5, -0.5] ,
+        [0.5, -0.5, 0.5]  , [-0.5, -0.5, 0.5] , [-0.5, 0.5, 0.5]  , [0.5, 0.5, 0.5]  ,
+        [-0.5, -0.5, 0.5] , [-0.5, -0.5, -0.5], [-0.5, 0.5, -0.5] , [-0.5, 0.5, 0.5] ,
+        [-0.5, 0.5, -0.5] , [0.5, 0.5, -0.5]  , [0.5, 0.5, 0.5]   , [-0.5, 0.5, 0.5] ,
+        [0.5, -0.5, 0.5]  , [-0.5, -0.5, 0.5] , [-0.5, -0.5, -0.5], [0.5, -0.5, -0.5]];
         
-        gl::BufferData(
-            gl::ELEMENT_ARRAY_BUFFER,
-            size_of_val(&INDICES) as isize,
-            INDICES.as_ptr().cast(),
-            gl::STATIC_DRAW
-        );
         
-        // Enable vertex attributes
-        gl::EnableVertexAttribArray(0);
-        gl::VertexAttribPointer(
-            0,
-            3,
-            gl::FLOAT,
-            gl::FALSE,
-            size_of::<Vertex>().try_into().unwrap(),
-            0 as *const _
-        );
-    }
+    let vertex_layout = BufferLayout::new(Vec::from([
+        BufferAttribute::new(AttributeType::Vec3f, false)
+        ]));
+    let vertex_buffer = ArrayBuffer::new(vertex_layout);
+    vertex_buffer.set_data(VERTICES.as_ptr().cast(), size_of_val(&VERTICES));
+    
+    // Index Buffer
+    const INDICES: [u32; 6*6] = [
+        0, 1, 2, 0, 2, 3,
+        4, 5, 6, 4, 6, 7,
+        8, 9, 10, 8, 10, 11,
+        12, 13, 14, 12, 14, 15,
+        16, 17, 18, 16, 18, 19,
+        20, 21, 22, 20, 22, 23];
+    
+    let index_buffer = IndexBuffer::new();
+    index_buffer.set_data(INDICES.as_ptr().cast(), size_of_val(&INDICES));
+    
+    // Vertex Array
+    let vertex_array = VertexArray::new();
+    vertex_array.add_vertex_buffer(&vertex_buffer);
+    vertex_array.set_index_buffer(&index_buffer);
 
     // Create shader
-    let mut shader_program: u32 = 0;
+    let shader_program: u32;
     unsafe {
         // Vertex shader
         let vertex_shader = gl::CreateShader(gl::VERTEX_SHADER);
