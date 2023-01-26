@@ -3,3 +3,5 @@ pub mod index_buffer;
 pub mod vertex_array;
 
 pub mod shader;
+
+pub mod renderer;
