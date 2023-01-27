@@ -1,11 +1,18 @@
 use sdl2::{Sdl, video::{GLContext, GLProfile, SwapInterval}};
 
+/// Holds window information
 pub struct Window {
     window: sdl2::video::Window,
     gl_context: GLContext
 }
 
 impl Window {
+    /// Creates a new `Window`.\
+    /// Initializes OpenGL context and functions
+    /// 
+    /// # Arguments
+    /// 
+    /// * `sdl` - Reference to sdl
     pub fn new(sdl: &Sdl) -> Self {
         let video = sdl.video().unwrap();
     
@@ -26,6 +33,7 @@ impl Window {
         Window { window, gl_context }
     }
 
+    /// Get the native SDL window
     pub fn native(&self) -> &sdl2::video::Window {
         &self.window
     }

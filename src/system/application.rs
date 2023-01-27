@@ -16,12 +16,14 @@ use crate::graphics::index_buffer::IndexBuffer;
 use crate::graphics::shader::Shader;
 use crate::graphics::renderer::Renderer;
 
+/// Main application
 pub struct Application {
     sdl: Sdl,
     window: Window
 }
 
 impl Application {
+    /// Creates a new `Application`
     pub fn new() -> Self {
         let sdl = sdl2::init().unwrap();
         let window = Window::new(&sdl);
@@ -32,6 +34,7 @@ impl Application {
         Application { sdl, window }
     }
 
+    /// Start executing the application
     pub fn execute(&mut self) {
         // Vertex Buffer
         type Vertex = [f32; 3];
