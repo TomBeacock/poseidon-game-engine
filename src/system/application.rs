@@ -3,7 +3,8 @@ use std::mem::size_of_val;
 
 use sdl2::Sdl;
 use sdl2::event::Event;
-use sdl2::video::{GLProfile, SwapInterval, Window, GLContext};
+
+use super::window::Window;
 
 use crate::math::vec3f::Vec3f;
 use crate::math::vec4f::Vec4f;
@@ -17,34 +18,18 @@ use crate::graphics::renderer::Renderer;
 
 pub struct Application {
     sdl: Sdl,
-    gl_context: GLContext,
     window: Window
 }
 
 impl Application {
     pub fn new() -> Self {
         let sdl = sdl2::init().unwrap();
-        let video = sdl.video().unwrap();
-    
-        let gl_attr = video.gl_attr();
-        gl_attr.set_context_version(3, 3);
-        gl_attr.set_context_profile(GLProfile::Core);
-         
-        let window = video.window("Poseidon Engine", 1280, 720)
-            .opengl()
-            .build()
-            .unwrap();
-            
-        let gl_context = window.gl_create_context().unwrap();
-        window.gl_make_current(&gl_context).unwrap();
-        video.gl_set_swap_interval(SwapInterval::VSync).unwrap();
-    
-        gl::load_with(|fn_name| video.gl_get_proc_address(fn_name) as *const _);
+        let window = Window::new(&sdl);
     
         Renderer::init();
         Renderer::set_clear_color(Vec4f::new(0.0, 0.0, 0.0, 0.0));
         
-        Application { sdl, gl_context, window }
+        Application { sdl, window }
     }
 
     pub fn execute(&mut self) {
@@ -148,7 +133,7 @@ impl Application {
     
             Renderer::draw_elements(&vertex_array, 6*6);
     
-            self.window.gl_swap_window();
+            self.window.native().gl_swap_window();
         }
     }
 }
