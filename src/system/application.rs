@@ -6,6 +6,8 @@ use sdl2::event::Event;
 
 use super::window::Window;
 
+use crate::graphics::renderer_2d::{Renderer2D, Rect};
+use crate::math::vec2f::Vec2f;
 use crate::math::vec3f::Vec3f;
 use crate::math::vec4f::Vec4f;
 use crate::math::mat4f::Mat4f;
@@ -108,6 +110,13 @@ impl Application {
         shader.set_mat4f(&CString::new("model").unwrap(), model);
         shader.set_mat4f(&CString::new("view_projection").unwrap(), projection * view);
 
+        //let view_2d = Mat4f::translate(-Vec3f::new(1280.0 / 2.0, 720.0 / 2.0, 0.0));
+        let projection_2d = Mat4f::ortho_off_center(0.0, 1280.0, 720.0, 0.0, -1.0, 1.0);
+        let view_2d = Mat4f::translate(Vec3f::zero());
+        //let projection_2d = Mat4f::ortho(16.0, 9.0, -1.0, 1.0);
+
+        let renderer_2d = Renderer2D::new(projection_2d * view_2d);
+
         let mut event_pump = self.sdl.event_pump().unwrap();
     
         let mut angle: f32 = 0.0;
@@ -132,9 +141,14 @@ impl Application {
                 Vec3f::new(0.0, angle.to_radians(), 0.0),
                 Vec3f::new(1.0, 1.0, 1.0));
     
+            shader.bind();
             shader.set_mat4f(&CString::new("model").unwrap(), model);
-    
             Renderer::draw_elements(&vertex_array, 6*6);
+
+            renderer_2d.draw_rect(
+                Rect::new(Vec3f::zero(), Vec2f::new(200.0, 100.0), Vec2f::zero()),
+                Vec4f::new(0.0, 1.0, 1.0, 1.0)
+            );
     
             self.window.native().gl_swap_window();
         }
