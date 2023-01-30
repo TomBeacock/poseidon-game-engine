@@ -115,8 +115,8 @@ impl Shader {
     /// 
     /// # Arguments
     /// 
-    /// `name` - The name of the variable
-    /// `val` - The float value to set
+    /// * `name` - The name of the variable
+    /// * `val` - The float value to set
     pub fn set_float(&self, name: &CString, val: f32) {
         unsafe {
             let location = gl::GetUniformLocation(
@@ -131,8 +131,8 @@ impl Shader {
     /// 
     /// # Arguments
     /// 
-    /// `name` - The name of the variable
-    /// `val` - The `Vec2f` value to set
+    /// * `name` - The name of the variable
+    /// * `val` - The `Vec2f` value to set
     pub fn set_vec2f(&self, name: &CString, val: Vec2f) {
         unsafe {
             let location = gl::GetUniformLocation(
@@ -147,8 +147,8 @@ impl Shader {
     /// 
     /// # Arguments
     /// 
-    /// `name` - The name of the variable
-    /// `val` - The `Vec3f` value to set
+    /// * `name` - The name of the variable
+    /// * `val` - The `Vec3f` value to set
     pub fn set_vec3f(&self, name: &CString, val: Vec3f) {
         unsafe {
             let location = gl::GetUniformLocation(
@@ -163,8 +163,8 @@ impl Shader {
     /// 
     /// # Arguments
     /// 
-    /// `name` - The name of the variable
-    /// `val` - The `Vec4f` value to set
+    /// * `name` - The name of the variable
+    /// * `val` - The `Vec4f` value to set
     pub fn set_vec4f(&self, name: &CString, val: Vec4f) {
         unsafe {
             let location = gl::GetUniformLocation(
@@ -179,8 +179,8 @@ impl Shader {
     /// 
     /// # Arguments
     /// 
-    /// `name` - The name of the variable
-    /// `val` - The `Mat4f` value to set
+    /// * `name` - The name of the variable
+    /// * `val` - The `Mat4f` value to set
     pub fn set_mat4f(&self, name: &CString, val: Mat4f) {
         unsafe {
             let location = gl::GetUniformLocation(
