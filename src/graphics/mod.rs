@@ -4,5 +4,7 @@ pub mod vertex_array;
 
 pub mod shader;
 
+pub mod texture;
+
 pub mod renderer;
 pub mod renderer_2d;
