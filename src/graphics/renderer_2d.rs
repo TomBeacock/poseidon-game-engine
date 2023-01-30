@@ -6,6 +6,7 @@ use crate::graphics::renderer::Renderer;
 use crate::math::{vec2f::Vec2f, vec3f::Vec3f, vec4f::Vec4f};
 use crate::math::mat4f::Mat4f;
 use super::array_buffer::{BufferLayout, BufferAttribute, AttributeType, ArrayBuffer};
+use super::texture::Texture;
 use super::{shader::Shader, vertex_array::VertexArray};
 
 /// Stores a rectangle
@@ -55,7 +56,8 @@ impl Rect {
 
 /// Renderer for 2D graphics
 pub struct Renderer2D {
-    default_shader: Shader
+    default_shader: Shader,
+    default_texture: Texture
 }
 
 impl Renderer2D {
@@ -65,27 +67,34 @@ impl Renderer2D {
     /// 
     /// * `view_projection` - The view projection matrix to use
     pub fn new(view_projection: Mat4f) -> Self {
+        // Initialize default shader
         const VERTEX_SHADER: &str = r#"#version 330 core
         layout (location = 0) in vec3 v_in_position;
-        layout (location = 1) in vec4 v_in_color;
+        layout (location = 1) in vec2 v_in_uv;
+        layout (location = 2) in vec4 v_in_color;
     
+        out vec2 v_out_uv;
         out vec4 v_out_color;
 
         uniform mat4 u_view_projection;
     
         void main() {
+            v_out_uv = v_in_uv;
             v_out_color = v_in_color;
             gl_Position = u_view_projection * vec4(v_in_position, 1.0);
         }
         "#;
     
         const FRAGMENT_SHADER: &str = r#"#version 330 core
+        in vec2 v_out_uv;
         in vec4 v_out_color; 
 
         out vec4 f_out_color;
+
+        uniform sampler2D u_texture;
     
         void main() {
-            f_out_color = v_out_color;
+            f_out_color = texture(u_texture, v_out_uv) * v_out_color;
         }
         "#;
     
@@ -95,8 +104,12 @@ impl Renderer2D {
         );
         default_shader.bind();
         default_shader.set_mat4f(&CString::new("u_view_projection").unwrap(), view_projection);
+        default_shader.set_int(&CString::new("u_texture").unwrap(), 0);
 
-        Renderer2D { default_shader }
+        // Initialize default texture
+        let default_texture = Texture::with_data(&Vec::from([255, 255, 255, 255]), 1, 1);
+
+        Renderer2D { default_shader, default_texture }
     }
 
     /// Draw a rect
@@ -106,21 +119,33 @@ impl Renderer2D {
     /// * `rect` - The rect to draw
     /// * `color` - The color to draw with
     pub fn draw_rect(&self, rect: Rect, color: Vec4f) {
+        self.draw_textured_rect(rect, &self.default_texture, color);
+    }
+
+    /// Draw a textured rect
+    /// 
+    /// # Arguments
+    /// 
+    /// * `rect` - The rect to draw
+    /// * `texture` - The texture to draw
+    /// * `tint` - The color to tint the texture
+    pub fn draw_textured_rect(&self, rect: Rect, texture: &Texture, tint: Vec4f) {
         let vertex_array = VertexArray::new();
         vertex_array.bind();
         
         let bounds = rect.bounds();
-        // Each vertex has 7 values: x, y, z, r, g, b, a
-        type RectVertex = [f32; 7];
+        // Each vertex has 9 values: x, y, z, u, v, r, g, b, a
+        type RectVertex = [f32; 9];
         let vertices : [RectVertex; 4] = [
-            [bounds.0, bounds.3, rect.position.z, color.x, color.y, color.z, color.w],
-            [bounds.1, bounds.3, rect.position.z, color.x, color.y, color.z, color.w],
-            [bounds.1, bounds.2, rect.position.z, color.x, color.y, color.z, color.w],
-            [bounds.0, bounds.2, rect.position.z, color.x, color.y, color.z, color.w]
+            [bounds.0, bounds.3, rect.position.z, 0.0, 0.0, tint.x, tint.y, tint.z, tint.w],
+            [bounds.1, bounds.3, rect.position.z, 1.0, 0.0, tint.x, tint.y, tint.z, tint.w],
+            [bounds.1, bounds.2, rect.position.z, 1.0, 1.0, tint.x, tint.y, tint.z, tint.w],
+            [bounds.0, bounds.2, rect.position.z, 0.0, 1.0, tint.x, tint.y, tint.z, tint.w]
             ];
 
         let vertex_layout = BufferLayout::new(Vec::from([
             BufferAttribute::new(AttributeType::Vec3f, false),
+            BufferAttribute::new(AttributeType::Vec2f, false),
             BufferAttribute::new(AttributeType::Vec4f, false)
         ]));
         let vertex_buffer = ArrayBuffer::new(vertex_layout);
@@ -134,6 +159,7 @@ impl Renderer2D {
         vertex_array.set_index_buffer(&index_buffer);
         
         self.default_shader.bind();
+        texture.bind_to_slot(0);
         Renderer::draw_elements(&vertex_array, 6);
     }
 }

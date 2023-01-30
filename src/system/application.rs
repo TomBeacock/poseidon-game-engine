@@ -121,8 +121,7 @@ impl Application {
         let renderer_2d = Renderer2D::new(projection_2d * view_2d);
 
         // Texture
-        let surface = Surface::from_file("res/trident.png").unwrap();
-        let texture = Texture::new(&surface);
+        let texture = Texture::new("res/trident.png");
 
         let mut event_pump = self.sdl.event_pump().unwrap();
     
@@ -155,6 +154,12 @@ impl Application {
             renderer_2d.draw_rect(
                 Rect::new(Vec3f::zero(), Vec2f::new(200.0, 100.0), Vec2f::zero()),
                 Vec4f::new(0.0, 1.0, 1.0, 1.0)
+            );
+
+            renderer_2d.draw_textured_rect(
+                Rect::new(Vec3f::zero(), Vec2f::new(100.0, 100.0), Vec2f::zero()),
+                &texture,
+                Vec4f::one()
             );
     
             self.window.native().gl_swap_window();
