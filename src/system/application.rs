@@ -3,10 +3,13 @@ use std::mem::size_of_val;
 
 use sdl2::Sdl;
 use sdl2::event::Event;
+use sdl2::image::{LoadSurface, InitFlag, Sdl2ImageContext};
+use sdl2::surface::Surface;
 
 use super::window::Window;
 
 use crate::graphics::renderer_2d::{Renderer2D, Rect};
+use crate::graphics::texture::Texture;
 use crate::math::vec2f::Vec2f;
 use crate::math::vec3f::Vec3f;
 use crate::math::vec4f::Vec4f;
@@ -21,6 +24,7 @@ use crate::graphics::renderer::Renderer;
 /// Main application
 pub struct Application {
     sdl: Sdl,
+    sdl_image: Sdl2ImageContext,
     window: Window
 }
 
@@ -28,12 +32,13 @@ impl Application {
     /// Creates a new `Application`
     pub fn new() -> Self {
         let sdl = sdl2::init().unwrap();
+        let sdl_image = sdl2::image::init(InitFlag::PNG).unwrap();
         let window = Window::new(&sdl);
-    
+
         Renderer::init();
         Renderer::set_clear_color(Vec4f::new(0.0, 0.0, 0.0, 0.0));
         
-        Application { sdl, window }
+        Application { sdl, sdl_image, window }
     }
 
     /// Start executing the application
@@ -104,18 +109,20 @@ impl Application {
             Vec3f::new(0.0, 0.0, 0.0),
             Vec3f::new(1.0, 1.0, 1.0));
         let view = Mat4f::translate(-Vec3f::new(0.0, 0.0, -3.0));
-        //let projection = Mat4f::ortho(16.0, 9.0, 0.1, 10.0);
         let projection = Mat4f::persp_fov(f32::to_radians(90.0), 16.0 / 9.0, 0.1, 10.0);
     
         shader.set_mat4f(&CString::new("model").unwrap(), model);
         shader.set_mat4f(&CString::new("view_projection").unwrap(), projection * view);
 
-        //let view_2d = Mat4f::translate(-Vec3f::new(1280.0 / 2.0, 720.0 / 2.0, 0.0));
+        // 2D Renderer
         let projection_2d = Mat4f::ortho_off_center(0.0, 1280.0, 720.0, 0.0, -1.0, 1.0);
         let view_2d = Mat4f::translate(Vec3f::zero());
-        //let projection_2d = Mat4f::ortho(16.0, 9.0, -1.0, 1.0);
 
         let renderer_2d = Renderer2D::new(projection_2d * view_2d);
+
+        // Texture
+        let surface = Surface::from_file("res/trident.png").unwrap();
+        let texture = Texture::new(&surface);
 
         let mut event_pump = self.sdl.event_pump().unwrap();
     
