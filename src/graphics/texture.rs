@@ -5,6 +5,11 @@ pub struct Texture {
 }
 
 impl Texture {
+    /// Creates a new `Texture`
+    /// 
+    /// # Arguments
+    /// 
+    /// * `surface` - The image data and meta-data
     pub fn new(surface: &Surface) -> Self {
         let mut id = 0;
         unsafe {
@@ -27,9 +32,17 @@ impl Texture {
         Texture { id }
     }
 
+    /// Make this buffer the active `Texture`
     pub fn bind(&self) {
         unsafe {
             gl::BindTexture(gl::TEXTURE_2D, self.id);
+        }
+    }
+
+    /// Unbind the current `Texture`
+    pub fn unbind() {
+        unsafe {
+            gl::BindTexture(gl::TEXTURE_2D, 0);
         }
     }
 }
