@@ -111,6 +111,22 @@ impl Shader {
         }
     }
 
+    /// Set an integer shader variable
+    /// 
+    /// # Arguments
+    /// 
+    /// * `name` - The name of the variable
+    /// * `val` - The int value to set
+    pub fn set_int(&self, name: &CString, val: i32) {
+        unsafe {
+            let location = gl::GetUniformLocation(
+                self.program,
+                name.as_ptr()
+            );
+            gl::Uniform1i(location, val);
+        }
+    }
+
     /// Set a float shader variable
     /// 
     /// # Arguments
