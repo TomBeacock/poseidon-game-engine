@@ -3,13 +3,14 @@ use std::ffi::c_void;
 /// Types of attributes in array buffers
 #[derive(Clone, Copy)]
 pub enum AttributeType {
-    Float, Vec2f, Vec3f, Vec4f,
+    Int, Float, Vec2f, Vec3f, Vec4f,
 }
 
 impl AttributeType {
     /// Get the size of the attribute (in bytes)
     pub const fn size(&self) -> u32 {
         match *self {
+            AttributeType::Int |
             AttributeType::Float => 4,
             AttributeType::Vec2f => 4 * 2,
             AttributeType::Vec3f => 4 * 3,
@@ -20,6 +21,7 @@ impl AttributeType {
     /// Get the number of components of the attributes
     pub const fn component_count(&self) -> u32 {
         match *self {
+            AttributeType::Int |
             AttributeType::Float => 1,
             AttributeType::Vec2f => 2,
             AttributeType::Vec3f => 3,
@@ -30,6 +32,7 @@ impl AttributeType {
     // Get the type as an opengl type
     pub const fn opengl_type(&self) -> u32 {
         match *self {
+            AttributeType::Int => gl::INT,
             AttributeType::Float |
             AttributeType::Vec2f |
             AttributeType::Vec3f |
@@ -120,10 +123,40 @@ impl ArrayBuffer {
     /// # Arguments
     /// 
     /// * `layout` - The layout of the buffer
-    pub fn new(layout: BufferLayout) -> Self {
+    /// * `data` - A c style void pointer to the data
+    /// * `size` - The size of the data 
+    pub fn new_static(layout: BufferLayout, data: *const c_void, size: usize) -> Self {
         let mut id = 0;
         unsafe {
             gl::GenBuffers(1, &mut id);
+            gl::BindBuffer(gl::ARRAY_BUFFER, id);
+            gl::BufferData(
+                gl::ARRAY_BUFFER,
+                size as isize,
+                data,
+                gl::STATIC_DRAW
+            );
+        }
+        ArrayBuffer { id, layout }
+    }
+
+    /// Creates a new `ArrayBuffer`
+    /// 
+    /// # Arguments
+    /// 
+    /// * `layout` - The layout of the buffer
+    /// * `size` - The size of the buffer
+    pub fn new_dynamic(layout: BufferLayout, size: usize) -> Self {
+        let mut id = 0;
+        unsafe {
+            gl::GenBuffers(1, &mut id);
+            gl::BindBuffer(gl::ARRAY_BUFFER, id);
+            gl::BufferData(
+                gl::ARRAY_BUFFER,
+                size as isize,
+                0 as *const _,
+                gl::DYNAMIC_DRAW
+            );
         }
         ArrayBuffer { id, layout }
     }
@@ -156,11 +189,11 @@ impl ArrayBuffer {
     pub fn set_data(&self, data: *const c_void, size: usize) {
         self.bind();
         unsafe {
-            gl::BufferData(
+            gl::BufferSubData(
                 gl::ARRAY_BUFFER,
+                0,
                 size as isize,
-                data,
-                gl::STATIC_DRAW
+                data
             );
         }
     }
