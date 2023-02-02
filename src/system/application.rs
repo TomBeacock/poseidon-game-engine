@@ -59,7 +59,7 @@ impl Application {
         let vertex_buffer = ArrayBuffer::new_static(vertex_layout, VERTICES.as_ptr().cast(), size_of_val(&VERTICES));
         
         // Index Buffer
-        const INDICES: [u32; 6*6] = [
+        let indices: Vec<u32> = vec![
             0, 1, 2, 0, 2, 3,
             4, 5, 6, 4, 6, 7,
             8, 9, 10, 8, 10, 11,
@@ -68,7 +68,7 @@ impl Application {
             20, 21, 22, 20, 22, 23];
         
         let index_buffer = IndexBuffer::new();
-        index_buffer.set_data(INDICES.as_ptr().cast(), size_of_val(&INDICES));
+        index_buffer.set_data(&indices);
         
         // Vertex Array
         let vertex_array = VertexArray::new();

@@ -106,18 +106,18 @@ impl RectBatch {
         let vertex_buffer = ArrayBuffer::new_dynamic(buffer_layout, size_of_val(&vertices));
         // Index buffer
         let index_buffer = IndexBuffer::new();
-        let mut indices = [0u32; MAX_INDICES_IN_BATCH as usize];
+        let mut indices = Vec::with_capacity(MAX_INDICES_IN_BATCH as usize);
         for i in 0..MAX_RECTS_IN_BATCH {
             let index = i * 6;
             let vertex = i * 4;
-            indices[index as usize + 0] = vertex + 0;
-            indices[index as usize + 1] = vertex + 1;
-            indices[index as usize + 2] = vertex + 2;
-            indices[index as usize + 3] = vertex + 0;
-            indices[index as usize + 4] = vertex + 2;
-            indices[index as usize + 5] = vertex + 3;
+            indices.push(vertex + 0);
+            indices.push(vertex + 1);
+            indices.push(vertex + 2);
+            indices.push(vertex + 0);
+            indices.push(vertex + 2);
+            indices.push(vertex + 3);
         }
-        index_buffer.set_data(indices.as_ptr().cast(), MAX_INDICES_IN_BATCH as usize);
+        index_buffer.set_data(&indices);
         
         // Vertex array
         let vertex_array = VertexArray::new();
@@ -300,9 +300,9 @@ impl Renderer2D {
             size_of_val(&vertices)
         );
         
-        const INDICES: [u32; 6] = [0, 1, 2, 0, 2, 3];
+        let indices: Vec<u32> = vec![0, 1, 2, 0, 2, 3];
         let index_buffer = IndexBuffer::new();
-        index_buffer.set_data(INDICES.as_ptr().cast(), size_of_val(&INDICES));
+        index_buffer.set_data(&indices);
         
         vertex_array.add_vertex_buffer(&vertex_buffer);
         vertex_array.set_index_buffer(&index_buffer);
