@@ -3,8 +3,7 @@ use std::mem::size_of_val;
 
 use sdl2::Sdl;
 use sdl2::event::Event;
-use sdl2::image::{LoadSurface, InitFlag, Sdl2ImageContext};
-use sdl2::surface::Surface;
+use sdl2::image::{InitFlag, Sdl2ImageContext};
 
 use super::window::Window;
 
@@ -57,8 +56,7 @@ impl Application {
         let vertex_layout = BufferLayout::new(Vec::from([
             BufferAttribute::new(AttributeType::Vec3f, false)
             ]));
-        let vertex_buffer = ArrayBuffer::new(vertex_layout);
-        vertex_buffer.set_data(VERTICES.as_ptr().cast(), size_of_val(&VERTICES));
+        let vertex_buffer = ArrayBuffer::new_static(vertex_layout, VERTICES.as_ptr().cast(), size_of_val(&VERTICES));
         
         // Index Buffer
         const INDICES: [u32; 6*6] = [
@@ -118,7 +116,7 @@ impl Application {
         let projection_2d = Mat4f::ortho_off_center(0.0, 1280.0, 720.0, 0.0, -1.0, 1.0);
         let view_2d = Mat4f::translate(Vec3f::zero());
 
-        let renderer_2d = Renderer2D::new(projection_2d * view_2d);
+        let mut renderer_2d = Renderer2D::new(projection_2d * view_2d);
 
         // Texture
         let texture = Texture::new("res/trident.png");
@@ -151,16 +149,18 @@ impl Application {
             shader.set_mat4f(&CString::new("model").unwrap(), model);
             Renderer::draw_elements(&vertex_array, 6*6);
 
-            renderer_2d.draw_rect(
-                Rect::new(Vec3f::zero(), Vec2f::new(200.0, 100.0), Vec2f::zero()),
+            renderer_2d.begin_batch();
+            renderer_2d.batch_rect(
+                Rect::new(Vec3f::zero(), Vec2f::new(200.0, 100.0), Vec2f::zero(), Vec2f::zero(), Vec2f::one()),
                 Vec4f::new(0.0, 1.0, 1.0, 1.0)
             );
 
-            renderer_2d.draw_textured_rect(
-                Rect::new(Vec3f::zero(), Vec2f::new(100.0, 100.0), Vec2f::zero()),
+            renderer_2d.batch_textured_rect(
+                Rect::new(Vec3f::zero(), Vec2f::new(100.0, 100.0), Vec2f::zero(), Vec2f::zero(), Vec2f::one()),
                 &texture,
                 Vec4f::one()
             );
+            renderer_2d.end_batch();
     
             self.window.native().gl_swap_window();
         }

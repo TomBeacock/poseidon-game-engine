@@ -61,5 +61,6 @@ impl Renderer {
         unsafe {
             gl::DrawElements(gl::TRIANGLES, count as i32, gl::UNSIGNED_INT, 0 as *const _)
         }
+        VertexArray::unbind();
     }
 }

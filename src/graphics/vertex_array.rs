@@ -1,4 +1,4 @@
-use super::{array_buffer::ArrayBuffer, index_buffer::IndexBuffer};
+use super::{array_buffer::{ArrayBuffer, AttributeType}, index_buffer::IndexBuffer};
 
 /// An array of vertex data
 pub struct VertexArray {
@@ -46,16 +46,33 @@ impl VertexArray {
             let attribute_type = attributes[i].attribute_type();
             unsafe {
                 gl::EnableVertexAttribArray(i as u32);
-                gl::VertexAttribPointer(
-                    i as u32,
-                    attribute_type.component_count() as i32,
-                    attribute_type.opengl_type(),
-                    if attributes[i].normalized() { gl::TRUE } else { gl::FALSE },
-                    layout.stride() as i32,
-                    offsets[i] as *const _
-                );
+                match attribute_type {
+                    AttributeType::Int => {
+                        gl::VertexAttribIPointer(
+                            i as u32,
+                            attribute_type.component_count() as i32,
+                            attribute_type.opengl_type(),
+                            layout.stride() as i32,
+                            offsets[i] as *const _
+                        );
+                    }
+                    AttributeType::Float |
+                    AttributeType::Vec2f |
+                    AttributeType::Vec3f |
+                    AttributeType::Vec4f => {
+                        gl::VertexAttribPointer(
+                            i as u32,
+                            attribute_type.component_count() as i32,
+                            attribute_type.opengl_type(),
+                            if attributes[i].normalized() { gl::TRUE } else { gl::FALSE },
+                            layout.stride() as i32,
+                            offsets[i] as *const _
+                        );
+                    }
+                }
             }
         }
+        Self::unbind();
     }
 
     /// Sets the `IndexBuffer` of this array
@@ -66,6 +83,7 @@ impl VertexArray {
     pub fn set_index_buffer(&self, index_buffer: &IndexBuffer) {
         self.bind();
         index_buffer.bind();
+        Self::unbind();
     }
 }
 
