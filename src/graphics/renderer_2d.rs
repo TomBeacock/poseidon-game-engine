@@ -1,10 +1,8 @@
 use std::ffi::CString;
 use std::mem::{size_of_val, size_of};
-use std::ops::Index;
 
 use crate::graphics::index_buffer::IndexBuffer;
 use crate::graphics::renderer::Renderer;
-use crate::graphics::vertex_array;
 use crate::math::{vec2f::Vec2f, vec3f::Vec3f, vec4f::Vec4f};
 use crate::math::mat4f::Mat4f;
 use super::array_buffer::{BufferLayout, BufferAttribute, AttributeType, ArrayBuffer};
@@ -83,6 +81,7 @@ impl Default for RectVertex {
     }
 }
 
+/// Stores a batch of rectangles
 struct RectBatch {
     vertices: [RectVertex; MAX_VERTS_IN_BATCH as usize],
     next_rect: usize,
@@ -94,6 +93,7 @@ struct RectBatch {
 }
 
 impl RectBatch {
+    /// Creates a new `RectBatch`
     pub fn new() -> Self {     
         // Vertex buffer
         let vertices = [RectVertex::default(); MAX_VERTS_IN_BATCH as usize];
@@ -134,11 +134,13 @@ impl RectBatch {
         }
     }
 
+    /// Reset batch to empty state
     pub fn reset(&mut self) {
         self.next_rect = 0;
         self.next_texture_slot = 1;
     }
 
+    /// Draw the batched rectangles
     pub fn draw(&self) {
         self.vertex_buffer.set_data(
             self.vertices.as_ptr().cast(),
@@ -147,6 +149,12 @@ impl RectBatch {
         Renderer::draw_elements(&self.vertex_array, (self.next_rect * 6) as u32)
     }
 
+    /// Add a rect to the batch
+    /// 
+    /// # Arguments
+    /// 
+    /// * `rect` - The rectangle to draw
+    /// * `color` - The color of the rectangle
     pub fn add_rect(&mut self, rect: Rect, color: Vec4f) {
         let bounds = rect.bounds();
 
@@ -162,6 +170,13 @@ impl RectBatch {
         self.next_rect += 1;
     }
 
+    /// Add a textured rectangle to the batch
+    /// 
+    /// # Arguments
+    /// 
+    /// * `rect` - The rectangle to draw
+    /// * `texture` - The texture of the rectangle
+    /// * `tint` - The tint color of the texture
     pub fn add_textured_rect(&mut self, rect: Rect, texture: &Texture, tint: Vec4f) {
         let bounds = rect.bounds();
 
@@ -250,11 +265,15 @@ impl Renderer2D {
         }
     }
 
+    /// Begin a new batch
+    /// 
+    /// **IMPORTANT**: no other drawing functions should be bound until end batch
     pub fn begin_batch(&mut self) {
         self.rect_batch.reset();
         self.default_texture.bind_to_slot(0);
     }
 
+    /// End and draw the batch
     pub fn end_batch(&self) {
         self.default_shader.bind();
         self.rect_batch.draw();
