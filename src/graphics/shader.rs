@@ -127,6 +127,22 @@ impl Shader {
         }
     }
 
+    /// Set an integer array shader variable
+    /// 
+    /// # Arguments
+    /// 
+    /// * `name` - The name of the variable
+    /// * `vals` - The int values to set
+    pub fn set_int_array(&self, name: &CString, vals: &Vec<i32>) {
+        unsafe {
+            let location = gl::GetUniformLocation(
+                self.program,
+                name.as_ptr()
+            );
+            gl::Uniform1iv(location, vals.len() as i32, vals.as_ptr().cast());
+        }
+    }
+
     /// Set a float shader variable
     /// 
     /// # Arguments
