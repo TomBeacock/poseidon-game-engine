@@ -1,4 +1,4 @@
-use std::ffi::c_void;
+use std::mem::size_of;
 
 /// A buffer of index graphics data
 pub struct IndexBuffer {
@@ -35,13 +35,13 @@ impl IndexBuffer {
     /// 
     /// * `data` - A c style void pointer to the data
     /// * `size` - The size of the data
-    pub fn set_data(&self, data: *const c_void, size: usize) {
+    pub fn set_data(&self, data: &Vec<u32>) {
         self.bind();
         unsafe {
             gl::BufferData(
                 gl::ELEMENT_ARRAY_BUFFER,
-                size as isize,
-                data,
+                (data.len() * size_of::<u32>()) as isize,
+                data.as_ptr().cast(),
                 gl::STATIC_DRAW
             );
         }
