@@ -5,6 +5,7 @@ use sdl2::Sdl;
 use sdl2::event::Event;
 use sdl2::image::{InitFlag, Sdl2ImageContext};
 
+use super::layer::Layer;
 use super::window::Window;
 
 use crate::graphics::renderer_2d::{Renderer2D, Rect};
@@ -24,7 +25,8 @@ use crate::graphics::renderer::Renderer;
 pub struct Application {
     sdl: Sdl,
     sdl_image: Sdl2ImageContext,
-    window: Window
+    window: Window,
+    layers: Vec<Box<dyn Layer>>
 }
 
 impl Application {
@@ -37,7 +39,7 @@ impl Application {
         Renderer::init();
         Renderer::set_clear_color(Vec4f::new(0.0, 0.0, 0.0, 0.0));
         
-        Application { sdl, sdl_image, window }
+        Application { sdl, sdl_image, window, layers: Vec::new() }
     }
 
     /// Start executing the application
@@ -128,13 +130,26 @@ impl Application {
         'running: loop {
             Renderer::clear();
     
-            for event in event_pump.poll_iter() {
+            'event_loop: for event in event_pump.poll_iter() {
+                // Propagate event through layers
+                for layer in self.layers.iter_mut() {
+                    if layer.on_event(&event) {
+                        // Event handled by layer, process next event
+                        continue 'event_loop;
+                    }
+                }
+
+                // Default event handling
                 match event {
                     Event::Quit {..} => {
                         break 'running
                     },
                     _ => {}
                 }
+            }
+
+            for layer in self.layers.iter_mut() {
+                layer.on_update();
             }
     
             // Rotate quad
