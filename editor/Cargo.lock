@@ -68,12 +68,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "poseidon-game-engine"
+name = "poseidon"
 version = "0.1.0"
 dependencies = [
  "auto_ops",
  "gl",
  "sdl2",
+]
+
+[[package]]
+name = "poseidon_editor"
+version = "0.1.0"
+dependencies = [
+ "poseidon",
 ]
 
 [[package]]
